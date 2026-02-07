@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation 5-Tab Test</title>
+    <link rel="stylesheet" href="../../frontend/styles.css">
+    <style>
+        body {
+            padding: 20px;
+            background: var(--color-sky-blue);
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 100px;
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .test-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .test-pass {
+            background: #C6F6D5;
+            color: #22543D;
+        }
+        .test-fail {
+            background: #FED7D7;
+            color: #742A2A;
+        }
+        .test-info {
+            background: #E8F4F8;
+            color: #2C5282;
+        }
+        .view-indicator {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .view-report { background: #FFF4D6; }
+        .view-actions { background: #E8F4F8; }
+        .view-heatmap { background: #D4F1E8; }
+        .view-community { background: #FFE5A3; }
+        .view-mypoints { background: #FED7D7; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>Navigation 5-Tab Test</h1>
+            <p>Testing navigation with all 5 tabs: Report, Actions, Heatmap, Community, My Points</p>
+        </div>
+        
+        <div id="test-results"></div>
+        
+        <div id="current-view-indicator" class="view-indicator">
+            Current View: <span id="view-name">report</span>
+        </div>
+        
+        <div id="click-test-section">
+            <h3>Click Test</h3>
+            <p>Click each navigation button below to test view switching:</p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav id="navigation-bar" class="nav-bar"></nav>
+
+    <script src="../../frontend/navigation.js"></script>
+    <script>
+        const testResults = document.getElementById('test-results');
+        const viewNameEl = document.getElementById('view-name');
+        const viewIndicator = document.getElementById('current-view-indicator');
+        
+        function addTestResult(message, status) {
+            const div = document.createElement('div');
+            div.className = `test-status test-${status}`;
+            div.textContent = message;
+            testResults.appendChild(div);
+        }
+        
+        function updateViewIndicator(view) {
+            viewNameEl.textContent = view;
+            viewIndicator.className = 'view-indicator view-' + view;
+        }
+        
+        // Test 1: Check if NavigationBar class is loaded
+        if (typeof NavigationBar !== 'undefined') {
+            addTestResult('✓ NavigationBar class loaded successfully', 'pass');
+        } else {
+            addTestResult('✗ NavigationBar class not found', 'fail');
+        }
+        
+        // Test 2: Initialize NavigationBar
+        try {
+            const navigationBar = new NavigationBar({
+                containerId: 'navigation-bar',
+                currentView: 'report',
+                onViewChange: (view) => {
+                    console.log('View changed to:', view);
+                    updateViewIndicator(view);
+                    addTestResult(`View changed to: ${view}`, 'info');
+                }
+            });
+            addTestResult('✓ NavigationBar instance created', 'pass');
+            
+            // Test 3: Initialize the navigation
+            navigationBar.init();
+            addTestResult('✓ NavigationBar initialized', 'pass');
+            
+            // Test 4: Check if navigation has 5 items
+            const navItems = document.querySelectorAll('.nav-item');
+            if (navItems.length === 5) {
+                addTestResult(`✓ Found 5 navigation items`, 'pass');
+            } else {
+                addTestResult(`✗ Expected 5 navigation items, found ${navItems.length}`, 'fail');
+            }
+            
+            // Test 5: Check each navigation item
+            const expectedViews = ['report', 'actions', 'heatmap', 'community', 'mypoints'];
+            const expectedLabels = ['Report', 'Actions', 'Heatmap', 'Community', 'My Points'];
+            const expectedIcons = ['📝', '✨', '🗺️', '👥', '⭐'];
+            
+            let allViewsPresent = true;
+            expectedViews.forEach((view, index) => {
+                const item = document.querySelector(`.nav-item[data-view="${view}"]`);
+                if (item) {
+                    const label = item.querySelector('.nav-label').textContent;
+                    const icon = item.querySelector('.nav-icon').textContent;
+                    
+                    if (label === expectedLabels[index] && icon === expectedIcons[index]) {
+                        addTestResult(`✓ ${view} tab: correct label and icon`, 'pass');
+                    } else {
+                        addTestResult(`✗ ${view} tab: incorrect label or icon`, 'fail');
+                        allViewsPresent = false;
+                    }
+                } else {
+                    addTestResult(`✗ ${view} tab not found`, 'fail');
+                    allViewsPresent = false;
+                }
+            });
+            
+            if (allViewsPresent) {
+                addTestResult('✓ All 5 tabs present with correct labels and icons', 'pass');
+            }
+            
+            // Test 6: Check initial active state
+            const activeItem = document.querySelector('.nav-item.active');
+            if (activeItem && activeItem.getAttribute('data-view') === 'report') {
+                addTestResult('✓ Report tab is initially active', 'pass');
+            } else {
+                addTestResult('✗ Report tab is not initially active', 'fail');
+            }
+            
+            // Test 7: Programmatic view change test
+            setTimeout(() => {
+                addTestResult('Testing programmatic view changes...', 'info');
+                
+                // Test changing to actions view
+                navigationBar.setCurrentView('actions');
+                const actionsActive = document.querySelector('.nav-item[data-view="actions"]').classList.contains('active');
+                if (actionsActive) {
+                    addTestResult('✓ Programmatic change to Actions view works', 'pass');
+                } else {
+                    addTestResult('✗ Programmatic change to Actions view failed', 'fail');
+                }
+                
+                // Test changing to heatmap view
+                setTimeout(() => {
+                    navigationBar.setCurrentView('heatmap');
+                    const heatmapActive = document.querySelector('.nav-item[data-view="heatmap"]').classList.contains('active');
+                    if (heatmapActive) {
+                        addTestResult('✓ Programmatic change to Heatmap view works', 'pass');
+                    } else {
+                        addTestResult('✗ Programmatic change to Heatmap view failed', 'fail');
+                    }
+                    
+                    // Reset to report view
+                    setTimeout(() => {
+                        navigationBar.setCurrentView('report');
+                        addTestResult('All navigation tests completed! Try clicking the tabs below.', 'info');
+                    }, 500);
+                }, 500);
+            }, 500);
+            
+        } catch (error) {
+            addTestResult(`✗ Error during initialization: ${error.message}`, 'fail');
+        }
+    </script>
+</body>
+</html>

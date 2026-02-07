@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZoneInspector Component Test</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .test-section h2 {
+      margin-bottom: 15px;
+      color: #4A5568;
+    }
+    
+    .test-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .test-button {
+      padding: 10px 20px;
+      background: #52BE80;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .test-button:hover {
+      background: #6BC4A6;
+      transform: translateY(-2px);
+    }
+    
+    .test-button.secondary {
+      background: #5DADE2;
+    }
+    
+    .test-button.secondary:hover {
+      background: #7AB8D4;
+    }
+    
+    .test-button.warning {
+      background: #F4D03F;
+      color: #4A5568;
+    }
+    
+    .test-button.warning:hover {
+      background: #FFE5A3;
+    }
+    
+    .test-results {
+      margin-top: 15px;
+      padding: 15px;
+      background: #F5F7FA;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #4A5568;
+    }
+    
+    .test-results pre {
+      margin: 10px 0 0 0;
+      padding: 10px;
+      background: white;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    
+    .status.pass {
+      background: #D4F1E8;
+      color: #52BE80;
+    }
+    
+    .status.fail {
+      background: #FFE5E5;
+      color: #E74C3C;
+    }
+    
+    .mock-map {
+      height: 300px;
+      background: #E8F4F8;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #718096;
+      font-size: 18px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ZoneInspector Component Test</h1>
+  
+  <div class="test-section">
+    <h2>Test 1: Show Zone Inspector with Different States</h2>
+    <p>Click buttons to show zone inspector with different restoration states.</p>
+    <div class="test-buttons">
+      <button class="test-button warning" onclick="showNeedsRestoration()">
+        Show "Needs Restoration"
+      </button>
+      <button class="test-button" onclick="showHealing()">
+        Show "Healing"
+      </button>
+      <button class="test-button secondary" onclick="showRecovered()">
+        Show "Recovered"
+      </button>
+    </div>
+    <div class="test-results" id="test1-results">
+      Status: Ready to test
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 2: Close Button Functionality</h2>
+    <p>Open inspector and verify close button works.</p>
+    <div class="test-buttons">
+      <button class="test-button" onclick="testCloseButton()">
+        Test Close Button
+      </button>
+    </div>
+    <div class="test-results" id="test2-results">
+      Status: Ready to test
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 3: Escape Key Functionality</h2>
+    <p>Open inspector and press Escape key to close.</p>
+    <div class="test-buttons">
+      <button class="test-button" onclick="testEscapeKey()">
+        Test Escape Key
+      </button>
+    </div>
+    <div class="test-results" id="test3-results">
+      Status: Ready to test. Open inspector and press Escape.
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 4: State Messages</h2>
+    <p>Verify correct messages are displayed for each state.</p>
+    <div class="test-buttons">
+      <button class="test-button" onclick="testStateMessages()">
+        Test State Messages
+      </button>
+    </div>
+    <div class="test-results" id="test4-results">
+      Status: Ready to test
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Test 5: Visibility Check</h2>
+    <p>Test isVisible() method.</p>
+    <div class="test-buttons">
+      <button class="test-button" onclick="testVisibility()">
+        Test Visibility
+      </button>
+    </div>
+    <div class="test-results" id="test5-results">
+      Status: Ready to test
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Visual Test: Mock Map with Zone Inspector</h2>
+    <p>Simulates how the zone inspector appears over a map.</p>
+    <div class="test-buttons">
+      <button class="test-button" onclick="showOnMap()">
+        Show Inspector on Mock Map
+      </button>
+    </div>
+    <div class="mock-map" id="mock-map">
+      Click button to show zone inspector
+    </div>
+  </div>
+  
+  <!-- Zone Inspector Container -->
+  <div id="zone-inspector-container" class="hidden"></div>
+  
+  <script src="zoneInspector.js"></script>
+  <script>
+    // Initialize ZoneInspector
+    let inspector;
+    
+    function initInspector() {
+      inspector = new ZoneInspector({
+        containerId: 'zone-inspector-container',
+        onClose: (zoneInfo) => {
+          console.log('Inspector closed:', zoneInfo);
+          updateTestResult('test2-results', 'Inspector closed successfully', true);
+        }
+      });
+      
+      inspector.init();
+    }
+    
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initInspector();
+    });
+    
+    // Test 1: Show different states
+    function showNeedsRestoration() {
+      inspector.show({
+        zoneId: 'zone_3745_-12234',
+        state: 'needs_restoration',
+        message: 'This space needs care'
+      });
+      updateTestResult('test1-results', 'Showing "Needs Restoration" state', true);
+    }
+    
+    function showHealing() {
+      inspector.show({
+        zoneId: 'zone_3745_-12235',
+        state: 'healing',
+        message: 'This space is healing'
+      });
+      updateTestResult('test1-results', 'Showing "Healing" state', true);
+    }
+    
+    function showRecovered() {
+      inspector.show({
+        zoneId: 'zone_3745_-12236',
+        state: 'recovered',
+        message: 'This space has recovered'
+      });
+      updateTestResult('test1-results', 'Showing "Recovered" state', true);
+    }
+    
+    // Test 2: Close button
+    function testCloseButton() {
+      inspector.show({
+        zoneId: 'zone_test',
+        state: 'healing',
+        message: 'Click the close button (×) to test'
+      });
+      updateTestResult('test2-results', 'Inspector opened. Click close button to test.', null);
+    }
+    
+    // Test 3: Escape key
+    function testEscapeKey() {
+      inspector.show({
+        zoneId: 'zone_test',
+        state: 'recovered',
+        message: 'Press Escape key to close'
+      });
+      
+      // Listen for escape key
+      const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+          setTimeout(() => {
+            const isVisible = inspector.isVisible();
+            updateTestResult('test3-results', 
+              isVisible ? 'Escape key did not close inspector' : 'Escape key closed inspector successfully',
+              !isVisible
+            );
+          }, 100);
+          document.removeEventListener('keydown', escapeHandler);
+        }
+      };
+      
+      document.addEventListener('keydown', escapeHandler);
+      updateTestResult('test3-results', 'Inspector opened. Press Escape key.', null);
+    }
+    
+    // Test 4: State messages
+    function testStateMessages() {
+      const states = [
+        { state: 'needs_restoration', expectedMessage: 'This space needs care' },
+        { state: 'healing', expectedMessage: 'This space is healing' },
+        { state: 'recovered', expectedMessage: 'This space has recovered' }
+      ];
+      
+      let results = [];
+      let allPassed = true;
+      
+      states.forEach(({ state, expectedMessage }) => {
+        inspector.show({
+          zoneId: 'zone_test',
+          state: state
+        });
+        
+        // Check if message is displayed
+        const messageElement = document.querySelector('.zone-message');
+        const actualMessage = messageElement ? messageElement.textContent.trim() : '';
+        const passed = actualMessage === expectedMessage;
+        
+        results.push(`${state}: ${passed ? 'PASS' : 'FAIL'} (expected: "${expectedMessage}", got: "${actualMessage}")`);
+        allPassed = allPassed && passed;
+        
+        inspector.hide();
+      });
+      
+      updateTestResult('test4-results', results.join('\n'), allPassed);
+    }
+    
+    // Test 5: Visibility
+    function testVisibility() {
+      // Test 1: Initially hidden
+      const initiallyHidden = !inspector.isVisible();
+      
+      // Test 2: Visible after show
+      inspector.show({
+        zoneId: 'zone_test',
+        state: 'healing'
+      });
+      const visibleAfterShow = inspector.isVisible();
+      
+      // Test 3: Hidden after hide
+      inspector.hide();
+      const hiddenAfterHide = !inspector.isVisible();
+      
+      const allPassed = initiallyHidden && visibleAfterShow && hiddenAfterHide;
+      
+      const results = [
+        `Initially hidden: ${initiallyHidden ? 'PASS' : 'FAIL'}`,
+        `Visible after show(): ${visibleAfterShow ? 'PASS' : 'FAIL'}`,
+        `Hidden after hide(): ${hiddenAfterHide ? 'PASS' : 'FAIL'}`
+      ];
+      
+      updateTestResult('test5-results', results.join('\n'), allPassed);
+    }
+    
+    // Visual test: Show on mock map
+    function showOnMap() {
+      inspector.show({
+        zoneId: 'zone_map_test',
+        state: 'healing',
+        message: 'This space is healing'
+      });
+    }
+    
+    // Helper function to update test results
+    function updateTestResult(elementId, message, passed) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      
+      let statusHtml = '';
+      if (passed === true) {
+        statusHtml = '<span class="status pass">PASS</span>';
+      } else if (passed === false) {
+        statusHtml = '<span class="status fail">FAIL</span>';
+      }
+      
+      element.innerHTML = `
+        Status: ${message.includes('\n') ? '<pre>' + message + '</pre>' : message}
+        ${statusHtml}
+      `;
+    }
+  </script>
+</body>
+</html>

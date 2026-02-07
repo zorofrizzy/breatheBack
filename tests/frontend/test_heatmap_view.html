@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeatmapView Component Test</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    <!-- Application CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        body {
+            padding: 20px;
+        }
+        
+        #test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #4A5568;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .test-button {
+            padding: 10px 20px;
+            background: #52BE80;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .test-button:hover {
+            background: #6BC4A6;
+        }
+        
+        .test-info {
+            padding: 10px;
+            background: #E8F4F8;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #4A5568;
+        }
+    </style>
+</head>
+<body>
+    <div id="test-container">
+        <h1>HeatmapView Component Test</h1>
+        
+        <div class="test-section">
+            <div class="test-title">Map Toggle Control</div>
+            <div id="map-toggle-container"></div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Map Display</div>
+            <div id="map-container"></div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Legend</div>
+            <div id="map-legend-container"></div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Test Controls</div>
+            <div class="test-controls">
+                <button class="test-button" onclick="addTestZones()">Add Test Zones</button>
+                <button class="test-button" onclick="clearTestZones()">Clear Zones</button>
+                <button class="test-button" onclick="updateHeatmap()">Update Heatmap</button>
+            </div>
+            <div class="test-info" id="test-info">
+                Click "Add Test Zones" to populate the map with sample zones in different states.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <!-- HeatmapView Component -->
+    <script src="heatmapView.js"></script>
+    
+    <script>
+        // Mock app state for testing
+        window.BreatheBackApp = {
+            getState: function() {
+                return {
+                    zones: testZones,
+                    currentMapType: 'vape'
+                };
+            }
+        };
+        
+        // Test zones storage
+        let testZones = new Map();
+        
+        // Initialize HeatmapView
+        let heatmapView = new HeatmapView({
+            mapContainerId: 'map-container',
+            toggleContainerId: 'map-toggle-container',
+            legendContainerId: 'map-legend-container',
+            mapType: 'vape',
+            onMapTypeToggle: (type) => {
+                console.log('Map type toggled to:', type);
+                document.getElementById('test-info').textContent = `Map type changed to: ${type}`;
+            },
+            onZoneTap: (zoneInfo) => {
+                console.log('Zone tapped:', zoneInfo);
+                document.getElementById('test-info').textContent = 
+                    `Zone ${zoneInfo.zoneId} tapped: ${zoneInfo.message}`;
+            }
+        });
+        
+        heatmapView.init();
+        
+        // Test functions
+        function addTestZones() {
+            // Clear existing zones
+            testZones.clear();
+            
+            // Get current map center (San Francisco by default)
+            const center = heatmapView.map.getCenter();
+            const baseLat = center.lat;
+            const baseLng = center.lng;
+            
+            // Create test zones in different states
+            const gridSize = 0.01;
+            
+            // Needs Restoration zones (yellow) - high debt, low restore
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const lat = baseLat + (i - 1) * gridSize;
+                    const lng = baseLng + (j - 1) * gridSize;
+                    const zoneId = `zone_${Math.floor(lat / gridSize)}_${Math.floor(lng / gridSize)}`;
+                    
+                    testZones.set(zoneId, {
+                        id: zoneId,
+                        bounds: {
+                            north: Math.ceil(lat / gridSize) * gridSize,
+                            south: Math.floor(lat / gridSize) * gridSize,
+                            east: Math.ceil(lng / gridSize) * gridSize,
+                            west: Math.floor(lng / gridSize) * gridSize
+                        },
+                        vapeDebt: 50,
+                        vapeRestore: 10,
+                        smokeDebt: 40,
+                        smokeRestore: 5
+                    });
+                }
+            }
+            
+            // Healing zones (green) - moderate debt and restore
+            for (let i = 0; i < 2; i++) {
+                for (let j = 0; j < 2; j++) {
+                    const lat = baseLat + (i + 2) * gridSize;
+                    const lng = baseLng + (j - 1) * gridSize;
+                    const zoneId = `zone_${Math.floor(lat / gridSize)}_${Math.floor(lng / gridSize)}`;
+                    
+                    testZones.set(zoneId, {
+                        id: zoneId,
+                        bounds: {
+                            north: Math.ceil(lat / gridSize) * gridSize,
+                            south: Math.floor(lat / gridSize) * gridSize,
+                            east: Math.ceil(lng / gridSize) * gridSize,
+                            west: Math.floor(lng / gridSize) * gridSize
+                        },
+                        vapeDebt: 30,
+                        vapeRestore: 25,
+                        smokeDebt: 25,
+                        smokeRestore: 20
+                    });
+                }
+            }
+            
+            // Recovered zones (blue) - low debt, high restore
+            for (let i = 0; i < 2; i++) {
+                for (let j = 0; j < 2; j++) {
+                    const lat = baseLat + (i - 1) * gridSize;
+                    const lng = baseLng + (j + 2) * gridSize;
+                    const zoneId = `zone_${Math.floor(lat / gridSize)}_${Math.floor(lng / gridSize)}`;
+                    
+                    testZones.set(zoneId, {
+                        id: zoneId,
+                        bounds: {
+                            north: Math.ceil(lat / gridSize) * gridSize,
+                            south: Math.floor(lat / gridSize) * gridSize,
+                            east: Math.ceil(lng / gridSize) * gridSize,
+                            west: Math.floor(lng / gridSize) * gridSize
+                        },
+                        vapeDebt: 10,
+                        vapeRestore: 50,
+                        smokeDebt: 5,
+                        smokeRestore: 40
+                    });
+                }
+            }
+            
+            // Update heatmap
+            updateHeatmap();
+            
+            document.getElementById('test-info').textContent = 
+                `Added ${testZones.size} test zones. Try clicking on zones and toggling between Vape/Smoke maps.`;
+        }
+        
+        function clearTestZones() {
+            testZones.clear();
+            updateHeatmap();
+            document.getElementById('test-info').textContent = 'All zones cleared.';
+        }
+        
+        function updateHeatmap() {
+            heatmapView.update();
+        }
+        
+        // Add test zones on load
+        setTimeout(() => {
+            addTestZones();
+        }, 1000);
+    </script>
+</body>
+</html>

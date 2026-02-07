@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Main.js Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .pass {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>BreatheBack Main.js Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>Component Loading Tests</h2>
+        <div id="component-tests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Initialization Tests</h2>
+        <div id="init-tests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>View Routing Tests</h2>
+        <button onclick="testViewRouting()">Test View Routing</button>
+        <div id="routing-tests"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Backend Connection Test</h2>
+        <button onclick="testBackendConnection()">Test Backend</button>
+        <div id="backend-tests"></div>
+    </div>
+
+    <!-- Load Leaflet for map components -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Load all component scripts -->
+    <script src="navigation.js"></script>
+    <script src="reportForm.js"></script>
+    <script src="restorationActionCard.js"></script>
+    <script src="heatmapView.js"></script>
+    <script src="zoneInspector.js"></script>
+    <script src="pointsSummary.js"></script>
+    <script src="eventList.js"></script>
+    <script src="eventForm.js"></script>
+    <script src="app.js"></script>
+    <script src="main.js"></script>
+    
+    <script>
+        // Test component loading
+        function testComponentLoading() {
+            const componentsDiv = document.getElementById('component-tests');
+            const requiredComponents = [
+                'NavigationBar',
+                'ReportForm',
+                'RestorationActionCard',
+                'HeatmapView',
+                'ZoneInspector',
+                'PointsSummary',
+                'EventList',
+                'EventForm',
+                'BreatheBackApp',
+                'BreatheBackMain'
+            ];
+            
+            let allLoaded = true;
+            let html = '';
+            
+            requiredComponents.forEach(component => {
+                const loaded = window[component] !== undefined;
+                allLoaded = allLoaded && loaded;
+                html += `<div class="test-result ${loaded ? 'pass' : 'fail'}">
+                    ${loaded ? '✓' : '✗'} ${component}: ${loaded ? 'Loaded' : 'Not Loaded'}
+                </div>`;
+            });
+            
+            componentsDiv.innerHTML = html;
+            return allLoaded;
+        }
+        
+        // Test initialization
+        function testInitialization() {
+            const initDiv = document.getElementById('init-tests');
+            let html = '';
+            
+            // Check if BreatheBackApp is initialized
+            const appInitialized = window.BreatheBackApp && typeof window.BreatheBackApp.getState === 'function';
+            html += `<div class="test-result ${appInitialized ? 'pass' : 'fail'}">
+                ${appInitialized ? '✓' : '✗'} BreatheBackApp initialized
+            </div>`;
+            
+            // Check if state exists
+            if (appInitialized) {
+                const state = window.BreatheBackApp.getState();
+                const hasState = state !== null && state !== undefined;
+                html += `<div class="test-result ${hasState ? 'pass' : 'fail'}">
+                    ${hasState ? '✓' : '✗'} Application state exists
+                </div>`;
+                
+                if (hasState) {
+                    // Check default view
+                    const defaultView = state.currentView === 'report';
+                    html += `<div class="test-result ${defaultView ? 'pass' : 'fail'}">
+                        ${defaultView ? '✓' : '✗'} Default view is 'report' (current: ${state.currentView})
+                    </div>`;
+                    
+                    // Check state structure
+                    const hasZones = state.zones instanceof Map;
+                    html += `<div class="test-result ${hasZones ? 'pass' : 'fail'}">
+                        ${hasZones ? '✓' : '✗'} Zones map initialized
+                    </div>`;
+                    
+                    const hasUserPoints = state.userPoints !== null;
+                    html += `<div class="test-result ${hasUserPoints ? 'pass' : 'fail'}">
+                        ${hasUserPoints ? '✓' : '✗'} User points initialized
+                    </div>`;
+                    
+                    const hasEvents = Array.isArray(state.events);
+                    html += `<div class="test-result ${hasEvents ? 'pass' : 'fail'}">
+                        ${hasEvents ? '✓' : '✗'} Events array initialized
+                    </div>`;
+                }
+            }
+            
+            initDiv.innerHTML = html;
+        }
+        
+        // Test view routing
+        function testViewRouting() {
+            const routingDiv = document.getElementById('routing-tests');
+            let html = '<div class="test-result info">Testing view routing...</div>';
+            routingDiv.innerHTML = html;
+            
+            const views = ['report', 'heatmap', 'community', 'mypoints'];
+            let testsPassed = 0;
+            
+            views.forEach((view, index) => {
+                setTimeout(() => {
+                    window.BreatheBackApp.updateView(view);
+                    const state = window.BreatheBackApp.getState();
+                    const success = state.currentView === view;
+                    
+                    if (success) testsPassed++;
+                    
+                    html += `<div class="test-result ${success ? 'pass' : 'fail'}">
+                        ${success ? '✓' : '✗'} Navigate to ${view}: ${success ? 'Success' : 'Failed'}
+                    </div>`;
+                    
+                    routingDiv.innerHTML = html;
+                    
+                    // Return to report view after all tests
+                    if (index === views.length - 1) {
+                        setTimeout(() => {
+                            window.BreatheBackApp.updateView('report');
+                            html += `<div class="test-result ${testsPassed === views.length ? 'pass' : 'fail'}">
+                                View routing tests: ${testsPassed}/${views.length} passed
+                            </div>`;
+                            routingDiv.innerHTML = html;
+                        }, 500);
+                    }
+                }, index * 500);
+            });
+        }
+        
+        // Test backend connection
+        async function testBackendConnection() {
+            const backendDiv = document.getElementById('backend-tests');
+            backendDiv.innerHTML = '<div class="test-result info">Testing backend connection...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/zones');
+                const success = response.ok;
+                
+                let html = `<div class="test-result ${success ? 'pass' : 'fail'}">
+                    ${success ? '✓' : '✗'} Backend connection: ${success ? 'Connected' : 'Failed'}
+                </div>`;
+                
+                if (success) {
+                    const data = await response.json();
+                    html += `<div class="test-result info">
+                        Zones loaded: ${data.length}
+                    </div>`;
+                }
+                
+                backendDiv.innerHTML = html;
+            } catch (error) {
+                backendDiv.innerHTML = `<div class="test-result fail">
+                    ✗ Backend connection failed: ${error.message}
+                </div>`;
+            }
+        }
+        
+        // Run tests on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testComponentLoading();
+                testInitialization();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+

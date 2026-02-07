@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.db
+*.sqlite
+data/*.json
+
+# Kiro files (exclude all except important documentation)
+.kiro/
+!.kiro/specs/
+!.kiro/specs/**/*.md
+
+# Keep only essential spec files
+!.kiro/specs/*/requirements.md
+!.kiro/specs/*/design.md
+!.kiro/specs/*/tasks.md
+
+# Temporary files
+*_SUMMARY.md
+*_CHECKPOINT*.md
+fix_*.py

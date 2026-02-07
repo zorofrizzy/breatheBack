@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Components Integration Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .test-results {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .test-case {
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #A8D8EA;
+            background: #F5F7FA;
+        }
+        .test-pass {
+            border-left-color: #48BB78;
+        }
+        .test-fail {
+            border-left-color: #F56565;
+        }
+        .test-section {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>Event Components Integration Test</h1>
+        <p>Testing EventList and EventForm components with live API</p>
+    </div>
+
+    <div class="test-results" id="test-results">
+        <h2>Test Results</h2>
+        <div id="test-output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Event Form</h2>
+        <div id="event-form-container"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Event List</h2>
+        <div id="event-list-container"></div>
+    </div>
+
+    <script>
+        // Test utilities
+        const testOutput = document.getElementById('test-output');
+        let testsPassed = 0;
+        let testsFailed = 0;
+
+        function logTest(name, passed, message) {
+            const div = document.createElement('div');
+            div.className = `test-case ${passed ? 'test-pass' : 'test-fail'}`;
+            div.innerHTML = `
+                <strong>${passed ? '✓' : '✗'} ${name}</strong>
+                ${message ? `<br><small>${message}</small>` : ''}
+            `;
+            testOutput.appendChild(div);
+            
+            if (passed) testsPassed++;
+            else testsFailed++;
+        }
+
+        // Mock BreatheBackApp
+        let mockEvents = [];
+        
+        window.BreatheBackApp = {
+            getState: () => ({
+                events: mockEvents
+            }),
+            updateEvents: (events) => {
+                mockEvents = events;
+                console.log('Events updated:', events);
+            }
+        };
+
+        // Load initial events from API
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                if (response.ok) {
+                    mockEvents = await response.json();
+                    logTest('Load Events', true, `Loaded ${mockEvents.length} events from API`);
+                } else {
+                    logTest('Load Events', false, 'Failed to load events from API');
+                }
+            } catch (error) {
+                logTest('Load Events', false, error.message);
+            }
+        }
+
+        // Run tests
+        async function runTests() {
+            console.log('Starting integration tests...');
+
+            // Test 1: Load events
+            await loadEvents();
+
+            // Test 2: Initialize EventForm
+            try {
+                const eventForm = new EventForm({
+                    containerId: 'event-form-container',
+                    onSubmit: (event) => {
+                        console.log('Event created:', event);
+                        logTest('Event Form Submit', true, `Created event: ${event.name}`);
+                        
+                        // Update mock state
+                        mockEvents.push(event);
+                        
+                        // Update event list
+                        eventList.update();
+                    },
+                    onCancel: () => {
+                        console.log('Form cancelled');
+                    }
+                });
+                eventForm.init();
+                logTest('EventForm Initialization', true, 'EventForm component initialized');
+            } catch (error) {
+                logTest('EventForm Initialization', false, error.message);
+            }
+
+            // Test 3: Initialize EventList
+            try {
+                const eventList = new EventList({
+                    containerId: 'event-list-container',
+                    onEventTap: (event) => {
+                        console.log('Event tapped:', event);
+                        logTest('Event Tap', true, `Tapped: ${event.name}`);
+                    }
+                });
+                eventList.init();
+                logTest('EventList Initialization', true, 'EventList component initialized');
+                
+                // Make eventList available globally for form callback
+                window.eventList = eventList;
+            } catch (error) {
+                logTest('EventList Initialization', false, error.message);
+            }
+
+            // Test 4: Check EventList rendering
+            setTimeout(() => {
+                const eventItems = document.querySelectorAll('.event-item');
+                logTest('EventList Rendering', eventItems.length === mockEvents.length, 
+                    `Rendered ${eventItems.length} events (expected ${mockEvents.length})`);
+
+                // Test 5: Check EventForm fields
+                const formFields = {
+                    name: document.getElementById('event-name'),
+                    location: document.getElementById('event-location'),
+                    datetime: document.getElementById('event-datetime'),
+                    duration: document.getElementById('event-duration'),
+                    typeFocus: document.getElementById('event-type-focus'),
+                    description: document.getElementById('event-description')
+                };
+
+                const allFieldsPresent = Object.values(formFields).every(field => field !== null);
+                logTest('EventForm Fields', allFieldsPresent, 
+                    allFieldsPresent ? 'All form fields present' : 'Some form fields missing');
+
+                // Test 6: Check button groups
+                const typeButtons = document.querySelectorAll('[data-type]');
+                const contextButtons = document.querySelectorAll('[data-context]');
+                logTest('EventForm Buttons', typeButtons.length === 3 && contextButtons.length === 2,
+                    `Type buttons: ${typeButtons.length}/3, Context buttons: ${contextButtons.length}/2`);
+
+                // Test 7: Check default description
+                const description = formFields.description?.value || '';
+                const hasDefaultDescription = description.includes("We're meeting to help this area heal");
+                logTest('Default Description', hasDefaultDescription,
+                    hasDefaultDescription ? 'Default description populated' : 'Default description missing');
+
+                // Display summary
+                const summary = document.createElement('div');
+                summary.className = 'test-case';
+                summary.style.marginTop = '20px';
+                summary.style.fontWeight = 'bold';
+                summary.innerHTML = `
+                    <h3>Test Summary</h3>
+                    Passed: ${testsPassed} | Failed: ${testsFailed}
+                `;
+                testOutput.appendChild(summary);
+
+                console.log(`Tests completed: ${testsPassed} passed, ${testsFailed} failed`);
+            }, 500);
+        }
+
+        // Run tests when page loads
+        runTests();
+    </script>
+
+    <script src="eventForm.js"></script>
+    <script src="eventList.js"></script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Components Unit Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Event Components Unit Tests</h1>
+    <div id="test-results"></div>
+
+    <script src="eventForm.js"></script>
+    <script src="eventList.js"></script>
+
+    <script>
+        const results = document.getElementById('test-results');
+        let passed = 0;
+        let failed = 0;
+
+        function test(name, fn) {
+            try {
+                fn();
+                results.innerHTML += `<div class="test-result pass">✓ ${name}</div>`;
+                passed++;
+            } catch (error) {
+                results.innerHTML += `<div class="test-result fail">✗ ${name}: ${error.message}</div>`;
+                failed++;
+            }
+        }
+
+        function assert(condition, message) {
+            if (!condition) {
+                throw new Error(message || 'Assertion failed');
+            }
+        }
+
+        // Mock BreatheBackApp
+        window.BreatheBackApp = {
+            getState: () => ({
+                events: [
+                    {
+                        id: '1',
+                        name: 'Test Event',
+                        location: 'Test Location',
+                        date_time: new Date().toISOString(),
+                        duration: 60,
+                        type_focus: 'both',
+                        description: 'Test description',
+                        created_at: new Date().toISOString()
+                    }
+                ]
+            }),
+            updateEvents: () => {}
+        };
+
+        // Create test containers
+        document.body.innerHTML += '<div id="test-event-form"></div>';
+        document.body.innerHTML += '<div id="test-event-list"></div>';
+
+        // Run tests
+        test('EventForm class exists', () => {
+            assert(typeof EventForm === 'function', 'EventForm should be a function');
+        });
+
+        test('EventList class exists', () => {
+            assert(typeof EventList === 'function', 'EventList should be a function');
+        });
+
+        test('EventForm can be instantiated', () => {
+            const form = new EventForm({
+                containerId: 'test-event-form',
+                onSubmit: () => {},
+                onCancel: () => {}
+            });
+            assert(form !== null, 'EventForm instance should not be null');
+            assert(form.containerId === 'test-event-form', 'containerId should be set');
+        });
+
+        test('EventList can be instantiated', () => {
+            const list = new EventList({
+                containerId: 'test-event-list',
+                onEventTap: () => {}
+            });
+            assert(list !== null, 'EventList instance should not be null');
+            assert(list.containerId === 'test-event-list', 'containerId should be set');
+        });
+
+        test('EventForm has required methods', () => {
+            const form = new EventForm({
+                containerId: 'test-event-form',
+                onSubmit: () => {},
+                onCancel: () => {}
+            });
+            assert(typeof form.init === 'function', 'init method should exist');
+            assert(typeof form.render === 'function', 'render method should exist');
+            assert(typeof form.handleSubmit === 'function', 'handleSubmit method should exist');
+            assert(typeof form.getDefaultDescription === 'function', 'getDefaultDescription method should exist');
+        });
+
+        test('EventList has required methods', () => {
+            const list = new EventList({
+                containerId: 'test-event-list',
+                onEventTap: () => {}
+            });
+            assert(typeof list.init === 'function', 'init method should exist');
+            assert(typeof list.render === 'function', 'render method should exist');
+            assert(typeof list.getSortedEvents === 'function', 'getSortedEvents method should exist');
+            assert(typeof list.handleEventTap === 'function', 'handleEventTap method should exist');
+        });
+
+        test('EventForm getDefaultDescription returns correct text', () => {
+            const form = new EventForm({
+                containerId: 'test-event-form',
+                onSubmit: () => {},
+                onCancel: () => {}
+            });
+            const description = form.getDefaultDescription();
+            assert(description.includes("We're meeting to help this area heal"), 
+                'Default description should contain supportive text');
+        });
+
+        test('EventList getSortedEvents returns sorted array', () => {
+            const list = new EventList({
+                containerId: 'test-event-list',
+                onEventTap: () => {}
+            });
+            const events = list.getSortedEvents();
+            assert(Array.isArray(events), 'getSortedEvents should return an array');
+            assert(events.length === 1, 'Should return 1 event from mock state');
+        });
+
+        test('EventList formatDateTime formats correctly', () => {
+            const list = new EventList({
+                containerId: 'test-event-list',
+                onEventTap: () => {}
+            });
+            const formatted = list.formatDateTime(new Date('2026-02-07T14:30:00').toISOString());
+            assert(typeof formatted === 'string', 'formatDateTime should return a string');
+            assert(formatted.length > 0, 'Formatted date should not be empty');
+        });
+
+        test('EventList formatDuration formats minutes correctly', () => {
+            const list = new EventList({
+                containerId: 'test-event-list',
+                onEventTap: () => {}
+            });
+            assert(list.formatDuration(30) === '30 min', '30 minutes should format correctly');
+            assert(list.formatDuration(60) === '1 hour', '60 minutes should format as 1 hour');
+            assert(list.formatDuration(90) === '1h 30m', '90 minutes should format as 1h 30m');
+        });
+
+        test('EventList getTypeFocusLabel returns correct labels', () => {
+            const list = new EventList({
+                containerId: 'test-event-list',
+                onEventTap: () => {}
+            });
+            assert(list.getTypeFocusLabel('vape') === 'Vape Focus', 'vape label should be correct');
+            assert(list.getTypeFocusLabel('smoke') === 'Smoke Focus', 'smoke label should be correct');
+            assert(list.getTypeFocusLabel('both') === 'Vape & Smoke', 'both label should be correct');
+        });
+
+        test('EventList escapeHtml prevents XSS', () => {
+            const list = new EventList({
+                containerId: 'test-event-list',
+                onEventTap: () => {}
+            });
+            const escaped = list.escapeHtml('<script>alert("xss")</script>');
+            assert(!escaped.includes('<script>'), 'Script tags should be escaped');
+            assert(escaped.includes('&lt;'), 'Should contain escaped characters');
+        });
+
+        // Display summary
+        results.innerHTML += `
+            <div class="summary">
+                Test Summary: ${passed} passed, ${failed} failed
+                ${failed === 0 ? '🎉 All tests passed!' : ''}
+            </div>
+        `;
+    </script>
+</body>
+</html>
