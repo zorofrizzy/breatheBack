@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Components Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+        }
+        .test-section h2 {
+            margin-bottom: 20px;
+            color: #4A5568;
+        }
+    </style>
+</head>
+<body>
+    <h1>Event Components Test</h1>
+
+    <div class="test-section">
+        <h2>Event Form Component</h2>
+        <div id="event-form-container"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Event List Component</h2>
+        <div id="event-list-container"></div>
+    </div>
+
+    <script>
+        // Mock BreatheBackApp for testing
+        window.BreatheBackApp = {
+            getState: () => ({
+                events: [
+                    {
+                        id: '1',
+                        name: 'Community Air Healing Meetup',
+                        location: 'Central Park',
+                        date_time: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+                        duration: 60,
+                        type_focus: 'both',
+                        description: "We're meeting to help this area heal. No blame, just better air choices together.",
+                        context_hint: 'outdoor',
+                        created_at: new Date().toISOString()
+                    },
+                    {
+                        id: '2',
+                        name: 'Indoor Vape Restoration Workshop',
+                        location: 'Community Center',
+                        date_time: new Date(Date.now() + 172800000).toISOString(), // 2 days from now
+                        duration: 90,
+                        type_focus: 'vape',
+                        description: 'Join us for a supportive gathering focused on indoor air quality.',
+                        context_hint: 'indoor',
+                        created_at: new Date().toISOString()
+                    },
+                    {
+                        id: '3',
+                        name: 'Smoke-Free Zone Initiative',
+                        location: 'Downtown Area',
+                        date_time: new Date(Date.now() + 259200000).toISOString(), // 3 days from now
+                        duration: 120,
+                        type_focus: 'smoke',
+                        description: 'Community effort to create healthier outdoor spaces.',
+                        created_at: new Date().toISOString()
+                    }
+                ]
+            }),
+            updateEvents: (events) => {
+                console.log('Events updated:', events);
+            }
+        };
+    </script>
+
+    <script src="eventForm.js"></script>
+    <script src="eventList.js"></script>
+
+    <script>
+        // Initialize EventForm
+        const eventForm = new EventForm({
+            containerId: 'event-form-container',
+            onSubmit: (event) => {
+                console.log('Event created:', event);
+                alert('Event created successfully!');
+                
+                // Add to mock state
+                const state = window.BreatheBackApp.getState();
+                state.events.push(event);
+                
+                // Update event list
+                eventList.update();
+            },
+            onCancel: () => {
+                console.log('Form cancelled');
+            }
+        });
+        eventForm.init();
+
+        // Initialize EventList
+        const eventList = new EventList({
+            containerId: 'event-list-container',
+            onEventTap: (event) => {
+                console.log('Event tapped:', event);
+                alert(`Event Details:\n\nName: ${event.name}\nLocation: ${event.location}\nDescription: ${event.description}`);
+            }
+        });
+        eventList.init();
+    </script>
+</body>
+</html>

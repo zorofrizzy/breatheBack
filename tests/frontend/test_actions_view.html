@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActionsView Component Test</title>
+    <link rel="stylesheet" href="../../frontend/styles.css">
+    <style>
+        body {
+            padding: 20px;
+            background: var(--color-sky-blue);
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .test-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .test-pass {
+            background: #C6F6D5;
+            color: #22543D;
+        }
+        .test-fail {
+            background: #FED7D7;
+            color: #742A2A;
+        }
+        .test-info {
+            background: #E8F4F8;
+            color: #2C5282;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>ActionsView Component Test</h1>
+            <p>Testing the Actions tab functionality</p>
+        </div>
+        
+        <div id="test-results"></div>
+        
+        <div id="actions-container"></div>
+    </div>
+
+    <script src="../../frontend/actionsView.js"></script>
+    <script>
+        const testResults = document.getElementById('test-results');
+        
+        function addTestResult(message, status) {
+            const div = document.createElement('div');
+            div.className = `test-status test-${status}`;
+            div.textContent = message;
+            testResults.appendChild(div);
+        }
+        
+        // Test 1: Check if ActionsView class is loaded
+        if (typeof ActionsView !== 'undefined') {
+            addTestResult('✓ ActionsView class loaded successfully', 'pass');
+        } else {
+            addTestResult('✗ ActionsView class not found', 'fail');
+        }
+        
+        // Test 2: Initialize ActionsView
+        try {
+            const actionsView = new ActionsView({
+                containerId: 'actions-container'
+            });
+            addTestResult('✓ ActionsView instance created', 'pass');
+            
+            // Test 3: Initialize the view
+            actionsView.init();
+            addTestResult('✓ ActionsView initialized', 'pass');
+            
+            // Test 4: Check if container has content
+            const container = document.getElementById('actions-container');
+            if (container && container.innerHTML.trim() !== '') {
+                addTestResult('✓ ActionsView rendered content', 'pass');
+            } else {
+                addTestResult('✗ ActionsView did not render content', 'fail');
+            }
+            
+            // Test 5: Check for type buttons
+            const typeButtons = container.querySelectorAll('.type-btn');
+            if (typeButtons.length === 3) {
+                addTestResult(`✓ Found 3 type buttons (Vape, Smoke, Both)`, 'pass');
+            } else {
+                addTestResult(`✗ Expected 3 type buttons, found ${typeButtons.length}`, 'fail');
+            }
+            
+            // Test 6: Check for context buttons
+            const contextButtons = container.querySelectorAll('.context-btn');
+            if (contextButtons.length === 3) {
+                addTestResult(`✓ Found 3 context buttons (Indoor, Outdoor, Any)`, 'pass');
+            } else {
+                addTestResult(`✗ Expected 3 context buttons, found ${contextButtons.length}`, 'fail');
+            }
+            
+            // Test 7: Check CSS classes
+            const actionsView_el = container.querySelector('.actions-view');
+            if (actionsView_el) {
+                addTestResult('✓ Main .actions-view element found', 'pass');
+            } else {
+                addTestResult('✗ Main .actions-view element not found', 'fail');
+            }
+            
+            addTestResult('All component tests completed!', 'info');
+            
+        } catch (error) {
+            addTestResult(`✗ Error during initialization: ${error.message}`, 'fail');
+        }
+    </script>
+</body>
+</html>
