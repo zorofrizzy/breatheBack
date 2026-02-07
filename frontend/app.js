@@ -928,7 +928,8 @@ async function seedDemoData() {
     await refreshAllViews();
     
     // Show success message
-    showSuccessMessage(`Demo data loaded! ${result.zones_created} zones created around your location.`);
+    const eventsMsg = result.events_created ? ` and ${result.events_created} community events` : '';
+    showSuccessMessage(`Demo data loaded! ${result.zones_created} zones${eventsMsg} created around your location.`);
     
     // Switch to heatmap view to see the zones
     updateView('heatmap');

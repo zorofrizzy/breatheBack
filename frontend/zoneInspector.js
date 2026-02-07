@@ -239,6 +239,16 @@ class ZoneInspector {
           ${message}
         </div>
         
+        <div class="cancer-impact-section">
+          <div class="impact-header">
+            <span class="impact-icon">🎗️</span>
+            <span class="impact-title">Cancer Prevention Impact</span>
+          </div>
+          <div id="cancer-explanation" class="cancer-explanation loading">
+            <div class="loading-spinner">Analyzing cancer risk...</div>
+          </div>
+        </div>
+        
         ${progressInfo}
         
         ${activityInfo}
@@ -247,6 +257,45 @@ class ZoneInspector {
     
     console.log('ZoneInspector rendered successfully');
     console.log('Rendered HTML:', this.container.innerHTML.substring(0, 500));
+    
+    // Fetch LLM explanation
+    this.fetchCancerExplanation(zoneData, mapType);
+  }
+  
+  /**
+   * Fetch cancer impact explanation from LLM
+   * @param {Object} zoneData - Zone data
+   * @param {string} mapType - Map type (vape/smoke)
+   */
+  async fetchCancerExplanation(zoneData, mapType) {
+    const explanationEl = document.getElementById('cancer-explanation');
+    if (!explanationEl) return;
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/explain', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          context: 'zone',
+          zone_data: zoneData,
+          map_type: mapType
+        })
+      });
+      
+      const data = await response.json();
+      
+      // Update with explanation
+      explanationEl.classList.remove('loading');
+      explanationEl.innerHTML = `<p>${data.explanation}</p>`;
+      
+    } catch (error) {
+      console.error('Error fetching cancer explanation:', error);
+      // Show fallback message
+      explanationEl.classList.remove('loading');
+      explanationEl.innerHTML = `<p>Your actions help reduce carcinogen exposure and prevent cancer in your community.</p>`;
+    }
   }
   
   /**
