@@ -19,93 +19,108 @@
     <!-- Main Application Container -->
     <div id="app">
         
-        <!-- Report View -->
+        <!-- Top Bar with Points Chip -->
+        <div class="top-bar">
+            <div class="top-bar-center">
+                <h1 class="app-name">BreatheBack</h1>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-icon">☀️</span>
+                </button>
+            </div>
+            <button id="points-chip" class="points-chip" aria-label="View your points">
+                <span class="chip-label">Today:</span>
+                <span class="chip-value" id="points-chip-value">0</span>
+            </button>
+        </div>
+        
+        <!-- Report View (Home) -->
         <div id="report-view" class="view active">
-            <div class="view-header">
-                <h1>Report Air Impact</h1>
-            </div>
             <div class="view-content">
-                <div id="report-form-container"></div>
-                <div id="restoration-card-container"></div>
+                <div id="report-flow-container">
+                    <div class="loading-placeholder">
+                        <p>Loading...</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Actions View -->
-        <div id="actions-view" class="view">
-            <div class="view-header">
-                <h1>Take Action</h1>
-                <p class="view-subtitle">Help restore air quality in your area</p>
-            </div>
-            <div class="view-content">
-                <div id="actions-container"></div>
-            </div>
-        </div>
-
-        <!-- Heatmap View -->
-        <div id="heatmap-view" class="view">
-            <div class="view-header">
-                <h1>Restoration Map</h1>
-                <div id="map-toggle-container"></div>
-            </div>
+        <!-- Map View -->
+        <div id="map-view" class="view">
             <div class="view-content">
                 <div id="map-container"></div>
                 <div id="map-legend-container"></div>
-                <div id="zone-inspector-container"></div>
             </div>
         </div>
 
         <!-- Community View -->
         <div id="community-view" class="view">
-            <div class="view-header">
-                <h1>Community Events</h1>
-            </div>
             <div class="view-content">
                 <div id="event-form-container"></div>
                 <div id="event-list-container"></div>
             </div>
         </div>
 
-        <!-- My Points View -->
-        <div id="mypoints-view" class="view">
-            <div class="view-header">
-                <h1>My Points</h1>
-            </div>
-            <div class="view-content">
-                <div id="points-summary-container"></div>
-                <div id="settings-container" class="settings-section">
-                    <h2>Settings</h2>
-                    <div class="settings-controls">
-                        <button id="seed-demo-btn" class="btn-primary">Seed Demo Data</button>
-                        <button id="demo-mode-btn" class="btn-secondary">Enable Demo Mode</button>
-                        <button id="reset-data-btn" class="btn-danger">Reset All Data</button>
-                        <button id="force-clear-btn" class="btn-danger">Force Clear & Reload</button>
+        <!-- Bottom Sheets -->
+        <div id="bottom-sheet-overlay" class="bottom-sheet-overlay hidden">
+            <!-- Points Panel -->
+            <div id="points-panel" class="bottom-sheet hidden">
+                <div class="sheet-handle"></div>
+                <div class="sheet-header">
+                    <h2>Your Impact</h2>
+                    <button class="sheet-close" aria-label="Close">&times;</button>
+                </div>
+                <div class="sheet-content">
+                    <div id="points-summary-container"></div>
+                    <div id="settings-container" class="settings-section">
+                        <h3>Settings</h3>
+                        <div class="settings-controls">
+                            <button id="seed-demo-btn" class="btn-secondary">Seed Demo Data</button>
+                            <button id="demo-mode-btn" class="btn-secondary">Enable Demo Mode</button>
+                            <button id="reset-data-btn" class="btn-danger">Reset All Data</button>
+                            <button id="force-clear-btn" class="btn-danger">Force Clear & Reload</button>
+                        </div>
                     </div>
-                    <p class="settings-note">Use "Force Clear & Reload" if reset is not working properly.</p>
+                </div>
+            </div>
+
+            <!-- Zone Inspector Panel -->
+            <div id="zone-inspector-panel" class="bottom-sheet hidden">
+                <div class="sheet-handle"></div>
+                <div class="sheet-header">
+                    <h2>Zone Details</h2>
+                    <button class="sheet-close" aria-label="Close">&times;</button>
+                </div>
+                <div class="sheet-content">
+                    <div id="zone-inspector-container"></div>
+                </div>
+            </div>
+
+            <!-- Actions Panel -->
+            <div id="actions-panel" class="bottom-sheet hidden">
+                <div class="sheet-handle"></div>
+                <div class="sheet-header">
+                    <h2>Restore Now</h2>
+                    <button class="sheet-close" aria-label="Close">&times;</button>
+                </div>
+                <div class="sheet-content">
+                    <div id="actions-container"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Bar -->
+        <!-- Navigation Bar (3 tabs) -->
         <nav id="navigation-bar" class="nav-bar">
             <button class="nav-item active" data-view="report">
                 <span class="nav-icon">📝</span>
                 <span class="nav-label">Report</span>
             </button>
-            <button class="nav-item" data-view="actions">
-                <span class="nav-icon">✨</span>
-                <span class="nav-label">Actions</span>
-            </button>
-            <button class="nav-item" data-view="heatmap">
+            <button class="nav-item" data-view="map">
                 <span class="nav-icon">🗺️</span>
-                <span class="nav-label">Heatmap</span>
+                <span class="nav-label">Map</span>
             </button>
             <button class="nav-item" data-view="community">
                 <span class="nav-icon">👥</span>
                 <span class="nav-label">Community</span>
-            </button>
-            <button class="nav-item" data-view="mypoints">
-                <span class="nav-icon">⭐</span>
-                <span class="nav-label">My Points</span>
             </button>
         </nav>
 
@@ -118,9 +133,10 @@
     
     <!-- Application JavaScript -->
     <!-- Component modules -->
+    <script src="themeManager.js"></script>
     <script src="navigation.js"></script>
-    <script src="reportForm.js"></script>
-    <script src="restorationActionCard.js"></script>
+    <script src="reportFlow.js"></script>
+    <script src="bottomSheetManager.js"></script>
     <script src="actionsView.js"></script>
     <script src="heatmapView.js"></script>
     <script src="zoneInspector.js"></script>

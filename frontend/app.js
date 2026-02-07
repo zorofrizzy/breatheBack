@@ -30,10 +30,10 @@ let appState = {
 
 /**
  * Update the current view
- * @param {string} view - View name: 'report', 'actions', 'heatmap', 'community', 'mypoints'
+ * @param {string} view - View name: 'report', 'map', 'community'
  */
 function updateView(view) {
-  const validViews = ['report', 'actions', 'heatmap', 'community', 'mypoints'];
+  const validViews = ['report', 'map', 'community'];
   if (!validViews.includes(view)) {
     console.error(`Invalid view: ${view}`);
     return;
@@ -336,41 +336,33 @@ function renderCurrentView() {
   console.log(`Rendering view: ${appState.currentView}`);
   
   // Hide all views
-  const views = ['report', 'actions', 'heatmap', 'community', 'mypoints'];
+  const views = ['report', 'map', 'community'];
   views.forEach(view => {
     const element = document.getElementById(`${view}-view`);
     if (element) {
-      element.style.display = 'none';
+      element.classList.remove('active');
     }
   });
   
   // Show current view
   const currentElement = document.getElementById(`${appState.currentView}-view`);
   if (currentElement) {
-    currentElement.style.display = 'block';
+    currentElement.classList.add('active');
   }
   
   // Update view-specific components
-  if (appState.currentView === 'actions' && actionsView) {
-    // Update actions view
-    actionsView.update();
+  if (appState.currentView === 'report' && reportFlow) {
+    reportFlow.update();
   }
   
-  if (appState.currentView === 'heatmap' && heatmapView) {
+  if (appState.currentView === 'map' && heatmapView) {
     // Update heatmap with current zones
-    // Add small delay to ensure view is visible
     setTimeout(() => {
       heatmapView.update();
     }, 100);
   }
   
-  if (appState.currentView === 'mypoints' && pointsSummary) {
-    // Update points summary with current data
-    pointsSummary.update();
-  }
-  
   if (appState.currentView === 'community') {
-    // Update event list and form with current data
     if (eventList) {
       eventList.update();
     }
@@ -411,11 +403,14 @@ function updateNavigationHighlight() {
 // NavigationBar instance
 let navigationBar = null;
 
-// ReportForm instance
-let reportForm = null;
+// ThemeManager instance
+let themeManager = null;
 
-// RestorationActionCard instance
-let restorationActionCard = null;
+// ReportFlow instance (merged Report + Actions)
+let reportFlow = null;
+
+// BottomSheetManager instance
+let bottomSheetManager = null;
 
 // ActionsView instance
 let actionsView = null;
@@ -444,14 +439,17 @@ function initializeApp() {
   // Load state from localStorage
   loadStateFromStorage();
   
+  // Initialize ThemeManager first
+  initializeThemeManager();
+  
   // Initialize NavigationBar component
   initializeNavigationBar();
   
-  // Initialize ReportForm component
-  initializeReportForm();
+  // Initialize BottomSheetManager
+  initializeBottomSheetManager();
   
-  // Initialize ActionsView component
-  initializeActionsView();
+  // Initialize ReportFlow component (merged Report + Actions)
+  initializeReportFlow();
   
   // Initialize HeatmapView component
   initializeHeatmapView();
@@ -471,6 +469,9 @@ function initializeApp() {
   // Initialize reset and demo functionality
   initializeResetAndDemo();
   
+  // Initialize points chip
+  initializePointsChip();
+  
   // Render initial view
   renderCurrentView();
   
@@ -478,6 +479,17 @@ function initializeApp() {
   setInterval(checkDailyReset, 60000);
   
   console.log('BreatheBack application initialized');
+}
+
+/**
+ * Initialize the ThemeManager
+ */
+function initializeThemeManager() {
+  themeManager = new ThemeManager();
+  themeManager.init();
+  
+  // Make globally accessible
+  window.themeManager = themeManager;
 }
 
 /**
@@ -496,90 +508,67 @@ function initializeNavigationBar() {
 }
 
 /**
- * Initialize the ReportForm component
+ * Initialize points chip
  */
-function initializeReportForm() {
-  reportForm = new ReportForm({
-    containerId: 'report-form-container',
-    onSubmit: (data) => {
-      console.log('Report submitted:', data);
-      
-      // Update app state with report data
-      appState.lastReport = data.report;
-      appState.showRestorationCard = true;
-      appState.currentSuggestions = data.suggestions;
-      
-      // Initialize and show RestorationActionCard
-      initializeRestorationActionCard(data);
-    },
-    onLocationError: (message) => {
-      console.error('Location error:', message);
+async function initializePointsChip() {
+  try {
+    const response = await fetch('http://localhost:5000/api/points');
+    if (response.ok) {
+      const data = await response.json();
+      const chipValue = document.getElementById('points-chip-value');
+      if (chipValue) {
+        chipValue.textContent = data.total_points || 0;
+      }
+      updatePoints(data);
     }
-  });
-  
-  reportForm.init();
+  } catch (error) {
+    console.error('Error loading initial points:', error);
+  }
 }
 
 /**
- * Initialize the RestorationActionCard component
- * @param {Object} data - Report submission data
+ * Initialize the BottomSheetManager
  */
-function initializeRestorationActionCard(data) {
-  // Clean up existing card if any
-  if (restorationActionCard) {
-    restorationActionCard.destroy();
-  }
+function initializeBottomSheetManager() {
+  bottomSheetManager = new BottomSheetManager();
+  bottomSheetManager.init();
   
-  restorationActionCard = new RestorationActionCard({
-    containerId: 'restoration-card-container',
-    context: data.report.context,
-    reportType: data.report.type,
-    zoneId: data.zoneId,
-    suggestions: data.suggestions,
+  // Make globally accessible
+  window.bottomSheetManager = bottomSheetManager;
+}
+
+/**
+ * Initialize the ReportFlow component (merged Report + Actions)
+ */
+function initializeReportFlow() {
+  reportFlow = new ReportFlow({
+    containerId: 'report-flow-container',
     onActionComplete: (result) => {
       console.log('Action completed:', result);
       
       // Update user points in state
-      if (appState.userPoints) {
-        appState.userPoints.totalPoints = result.totalPoints;
-        appState.userPoints.actionsCompleted = result.actionsCompleted;
-        saveStateToStorage();
+      if (result.totalPoints !== undefined) {
+        const pointsData = {
+          date: new Date().toISOString().split('T')[0],
+          total_points: result.totalPoints,
+          actions_completed: result.actionsCompleted || 0,
+          vape_points: 0,
+          smoke_points: 0
+        };
+        updatePoints(pointsData);
       }
       
       // Update heatmap if it's initialized
       if (heatmapView) {
         heatmapView.update();
       }
-      
-      // Update points summary if it's initialized
-      if (pointsSummary) {
-        pointsSummary.update();
-      }
-      
-      // Hide restoration card after feedback is shown
-      appState.showRestorationCard = false;
-      appState.lastReport = null;
-    },
-    onClose: () => {
-      console.log('Restoration card closed');
-      appState.showRestorationCard = false;
-      appState.lastReport = null;
-      restorationActionCard = null;
     }
   });
   
-  restorationActionCard.init();
-}
-
-/**
- * Initialize the ActionsView component
- */
-function initializeActionsView() {
-  actionsView = new ActionsView({
-    containerId: 'actions-container'
-  });
+  reportFlow.init();
   
-  actionsView.init();
+  // Make globally accessible
+  window.reportFlow = reportFlow;
 }
 
 /**
@@ -599,9 +588,10 @@ function initializeHeatmapView() {
       console.log('Zone tapped:', zoneInfo);
       updateSelectedZone(zoneInfo.zoneId);
       
-      // Show zone inspector
-      if (zoneInspector) {
+      // Show zone inspector in bottom sheet
+      if (zoneInspector && bottomSheetManager) {
         zoneInspector.show(zoneInfo);
+        bottomSheetManager.open('zone');
       }
     }
   });
@@ -621,6 +611,9 @@ function initializeZoneInspector() {
     onClose: (zoneInfo) => {
       console.log('Zone inspector closed:', zoneInfo);
       updateSelectedZone(null);
+      if (bottomSheetManager) {
+        bottomSheetManager.closeAll();
+      }
     }
   });
   

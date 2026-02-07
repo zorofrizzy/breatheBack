@@ -96,8 +96,8 @@ OUTDOOR_ACTIONS: List[RestorationAction] = [
 UNIVERSAL_ACTIONS: List[RestorationAction] = [
     RestorationAction(
         id='universal_1',
-        title='Take deep breaths',
-        description='Breathe deeply in fresh air',
+        title='Wear a face mask',
+        description='Breathe cleaner air',
         points=5,
         context='both'
     ),

@@ -27,6 +27,7 @@ class HeatmapView {
     this.map = null;
     this.zoneOverlays = new Map(); // Map of zone ID to Leaflet layer
     this.userLocationMarker = null; // User location marker
+    this.userLocationCoords = null; // Store user location coordinates
     this.userZoneHighlight = null; // Highlight for user's current zone
     
     // Containers
@@ -262,6 +263,9 @@ class HeatmapView {
    * @param {number} lng - Longitude
    */
   addUserLocationMarker(lat, lng) {
+    // Store the coordinates for later use
+    this.userLocationCoords = { lat, lng };
+    
     // Remove existing marker if any
     if (this.userLocationMarker) {
       this.map.removeLayer(this.userLocationMarker);
@@ -371,6 +375,13 @@ class HeatmapView {
    * Update user location marker
    */
   updateUserLocation() {
+    // If we have stored coordinates, re-add the marker
+    if (this.userLocationCoords) {
+      this.addUserLocationMarker(this.userLocationCoords.lat, this.userLocationCoords.lng);
+      return;
+    }
+    
+    // Otherwise, try to get current location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -382,6 +393,16 @@ class HeatmapView {
           console.log('Could not update user location');
         }
       );
+    }
+  }
+  
+  /**
+   * Restore user location marker (useful after theme changes)
+   */
+  restoreUserLocationMarker() {
+    if (this.userLocationCoords && this.map) {
+      console.log('Restoring user location marker at:', this.userLocationCoords);
+      this.addUserLocationMarker(this.userLocationCoords.lat, this.userLocationCoords.lng);
     }
   }
   
