@@ -1,6 +1,31 @@
 # BreatheBack Community Air Restoration App
 
+**🎗️ Hack4Hope 2025 - Cancer Prevention Through AI-Powered Education**
+
 BreatheBack is a single-page mobile web application that empowers communities to take positive action around air quality restoration. Users can report air impacts (smoke or vape), complete context-aware restoration actions, and visualize community progress through separate restoration maps—all while maintaining a supportive, non-accusatory, and privacy-focused experience.
+
+## 🆕 AI Cancer Impact Feature (Hack4Hope)
+
+**Making Cancer Policy Understandable and Actionable**
+
+BreatheBack now uses AI (via OpenRouter) to translate air quality data into personalized cancer prevention explanations. When users tap a zone on the heatmap, they see:
+
+- **Real-time cancer risk analysis**: AI explains how vaping aerosols and secondhand smoke affect lung and throat cancer risk
+- **Personalized to each zone**: Explanations adapt based on actual exposure levels (debt/restore scores)
+- **Youth-focused language**: Direct, honest, empowering tone for ages 16-25
+- **Immediate impact**: Users understand WHY their actions matter for cancer prevention
+
+**Example**: A zone with high vape debt shows: *"This zone has high exposure to vaping aerosols, which contain carcinogens linked to lung and throat cancer. Your restoration actions can help reduce cancer risk for everyone here."*
+
+### Quick Setup
+1. Get an OpenRouter API key: https://openrouter.ai/ (FREE - no credit card!)
+2. Create `.env` file in root directory with: `OPENROUTER_API_KEY=your-key`
+3. Run: `python test_llm.py` to verify setup
+4. Start server: `python app.py`
+
+**Model Used**: Google Gemini Flash 1.5 (100% free, fast, high-quality)
+
+See [LLM_SETUP.md](LLM_SETUP.md) for detailed instructions and [DEMO_GUIDE.md](DEMO_GUIDE.md) for judging presentation tips.
 
 ## Philosophy
 
@@ -10,6 +35,7 @@ BreatheBack prioritizes positive community engagement over blame, uses aggregate
 
 ## Features
 
+- **🎗️ AI Cancer Impact Explanations**: Real-time LLM-powered cancer risk analysis for each zone
 - **Quick Reporting**: Report air impacts (smoke or vape) with minimal taps
 - **Context-Aware Actions**: Get tailored restoration suggestions based on indoor/outdoor context
 - **Dual Heatmaps**: Separate visualization for vape and smoke restoration states

@@ -12,6 +12,10 @@ dist/
 build/
 .pytest_cache/
 
+# Environment variables
+.env
+backend/.env
+
 # IDE
 .vscode/
 .idea/

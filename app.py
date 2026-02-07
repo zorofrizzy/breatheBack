@@ -6,9 +6,13 @@ zone management, user points, and community events.
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
 import uuid
 import os
+
+# Load environment variables from .env file in root directory
+load_dotenv()
 
 from backend.models.zone import Zone
 from backend.models.user_points import UserPoints, CompletedAction
@@ -18,6 +22,7 @@ from backend.services.zone_calculation_service import ZoneCalculationService
 from backend.services.state_calculation_service import StateCalculationService
 from backend.services.action_suggestion_service import ActionSuggestionService
 from backend.services.local_storage_service import LocalStorageService
+from backend.services.llm_service import llm_service
 from backend.constants import DEBT_INCREMENT
 
 
@@ -576,9 +581,46 @@ def seed_demo_data():
         # Save zones to storage
         storage_service.save_zones(zone_service.get_all_zones())
         
+        # Create demo community events
+        demo_events = []
+        
+        # Event 1: Campus cleanup this weekend
+        event1 = CommunityEvent(
+            id=str(uuid.uuid4()),
+            name="Campus Vape Waste Cleanup",
+            location="University Campus - Main Quad",
+            date_time=datetime.utcnow() + timedelta(days=2),
+            duration=120,  # 2 hours
+            type_focus="vape",
+            context_hint="outdoor",
+            description="Join us for a community cleanup to remove vape waste from campus. Bring gloves and bags - we'll provide refreshments!",
+            created_at=datetime.utcnow()
+        )
+        demo_events.append(event1)
+        
+        # Event 2: Smoke-free housing workshop
+        event2 = CommunityEvent(
+            id=str(uuid.uuid4()),
+            name="Smoke-Free Housing Workshop",
+            location="Community Center - Room 201",
+            date_time=datetime.utcnow() + timedelta(days=5),
+            duration=90,  # 1.5 hours
+            type_focus="smoke",
+            context_hint="indoor",
+            description="Learn about tenant rights and smoke-free housing policies. Connect with local advocates and share your story.",
+            created_at=datetime.utcnow()
+        )
+        demo_events.append(event2)
+        
+        # Add events to global list and save
+        global events
+        events.extend(demo_events)
+        storage_service.save_events(events)
+        
         return jsonify({
-            'message': f'Demo data seeded successfully with {len(created_zones)} zones',
+            'message': f'Demo data seeded successfully with {len(created_zones)} zones and {len(demo_events)} events',
             'zones_created': len(created_zones),
+            'events_created': len(demo_events),
             'center': {'latitude': center_lat, 'longitude': center_lng}
         }), 201
         
@@ -646,6 +688,66 @@ def get_zone_actions(zone_id):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/explain', methods=['POST'])
+def explain_cancer_impact():
+    """
+    Generate LLM explanation of cancer impact.
+    
+    Request body:
+        context: 'zone' | 'action' | 'total'
+        zone_data: Zone information (for zone context)
+        action_data: Action information (for action context)
+        user_data: User stats (for total context)
+        map_type: 'vape' | 'smoke'
+    
+    Returns:
+        JSON with explanation text
+        
+    Requirements: Hack4Hope - Make cancer policy understandable
+    """
+    try:
+        data = request.get_json()
+        context = data.get('context', 'zone')
+        map_type = data.get('map_type', 'vape')
+        
+        if context == 'zone':
+            zone_data = data.get('zone_data', {})
+            explanation = llm_service.explain_zone_impact(zone_data, map_type)
+            
+        elif context == 'action':
+            action_data = data.get('action_data', {})
+            action_title = action_data.get('title', 'restoration action')
+            points = action_data.get('points', 0)
+            zone_state = action_data.get('zone_state', 'healing')
+            explanation = llm_service.explain_action_impact(
+                action_title, points, zone_state, map_type
+            )
+            
+        elif context == 'total':
+            user_data = data.get('user_data', {})
+            total_points = user_data.get('total_points', 0)
+            actions_completed = user_data.get('actions_completed', 0)
+            zones_improved = user_data.get('zones_improved', 0)
+            explanation = llm_service.explain_total_impact(
+                total_points, actions_completed, zones_improved
+            )
+        else:
+            return jsonify({'error': 'Invalid context'}), 400
+        
+        return jsonify({
+            'explanation': explanation,
+            'context': context
+        }), 200
+        
+    except Exception as e:
+        # Return fallback message on error
+        return jsonify({
+            'explanation': 'Your actions help reduce carcinogen exposure and prevent cancer in your community.',
+            'error': str(e),
+            'fallback': True
+        }), 200
 
 
 @app.route('/health', methods=['GET'])

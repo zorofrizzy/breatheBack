@@ -1123,6 +1123,52 @@ button:active {
   font-size: var(--font-size-sm);
 }
 
+/* Cancer Impact Section */
+.cancer-impact-section {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(236, 72, 153, 0.1);
+  border: 2px solid rgba(236, 72, 153, 0.3);
+  border-radius: var(--radius-md);
+}
+
+.impact-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.impact-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.impact-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.cancer-explanation {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.cancer-explanation.loading {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.cancer-explanation p {
+  margin: 0;
+}
+
+.loading-spinner {
+  color: var(--color-text-secondary);
+}
+
 /* ============================================
    Settings
    ============================================ */
