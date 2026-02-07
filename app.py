@@ -528,20 +528,30 @@ def seed_demo_data():
         # Grid offset: 0.01 degrees ≈ 1km
         demo_zones = [
             # Recovered zones (blue) - net score > 20
-            {'lat_offset': 0.02, 'lng_offset': 0.02, 'vape_debt': 20, 'vape_restore': 80, 'smoke_debt': 15, 'smoke_restore': 70},
-            {'lat_offset': 0.02, 'lng_offset': 0.01, 'vape_debt': 25, 'vape_restore': 90, 'smoke_debt': 20, 'smoke_restore': 85},
-            {'lat_offset': 0.01, 'lng_offset': 0.02, 'vape_debt': 30, 'vape_restore': 100, 'smoke_debt': 25, 'smoke_restore': 95},
+            # High activity recovered zone
+            {'lat_offset': 0.02, 'lng_offset': 0.02, 'vape_debt': 40, 'vape_restore': 120, 'smoke_debt': 30, 'smoke_restore': 100},
+            # Moderate activity recovered zone
+            {'lat_offset': 0.02, 'lng_offset': 0.01, 'vape_debt': 15, 'vape_restore': 60, 'smoke_debt': 10, 'smoke_restore': 45},
+            # Low activity recovered zone
+            {'lat_offset': 0.01, 'lng_offset': 0.02, 'vape_debt': 5, 'vape_restore': 30, 'smoke_debt': 3, 'smoke_restore': 25},
             
             # Healing zones (green) - net score between -20 and 20
-            {'lat_offset': 0.00, 'lng_offset': 0.02, 'vape_debt': 50, 'vape_restore': 45, 'smoke_debt': 60, 'smoke_restore': 50},
-            {'lat_offset': 0.01, 'lng_offset': 0.01, 'vape_debt': 40, 'vape_restore': 35, 'smoke_debt': 55, 'smoke_restore': 45},
-            {'lat_offset': 0.00, 'lng_offset': 0.01, 'vape_debt': 45, 'vape_restore': 40, 'smoke_debt': 50, 'smoke_restore': 48},
+            # Close to recovered (needs 11 points)
+            {'lat_offset': 0.00, 'lng_offset': 0.02, 'vape_debt': 35, 'vape_restore': 45, 'smoke_debt': 25, 'smoke_restore': 35},
+            # Mid-healing (needs 30 points)
+            {'lat_offset': 0.01, 'lng_offset': 0.01, 'vape_debt': 50, 'vape_restore': 40, 'smoke_debt': 45, 'smoke_restore': 35},
+            # Just entered healing (needs 40 points)
+            {'lat_offset': 0.00, 'lng_offset': 0.01, 'vape_debt': 60, 'vape_restore': 45, 'smoke_debt': 55, 'smoke_restore': 40},
             
             # Needs Restoration zones (yellow) - net score < -20
-            {'lat_offset': -0.01, 'lng_offset': 0.01, 'vape_debt': 100, 'vape_restore': 20, 'smoke_debt': 80, 'smoke_restore': 10},
-            {'lat_offset': -0.01, 'lng_offset': 0.02, 'vape_debt': 90, 'vape_restore': 15, 'smoke_debt': 70, 'smoke_restore': 5},
-            {'lat_offset': -0.02, 'lng_offset': 0.01, 'vape_debt': 110, 'vape_restore': 25, 'smoke_debt': 95, 'smoke_restore': 15},
-            {'lat_offset': -0.02, 'lng_offset': 0.02, 'vape_debt': 85, 'vape_restore': 10, 'smoke_debt': 75, 'smoke_restore': 8},
+            # Very high activity, needs lots of help
+            {'lat_offset': -0.01, 'lng_offset': 0.01, 'vape_debt': 150, 'vape_restore': 20, 'smoke_debt': 120, 'smoke_restore': 15},
+            # High activity, moderate debt
+            {'lat_offset': -0.01, 'lng_offset': 0.02, 'vape_debt': 80, 'vape_restore': 10, 'smoke_debt': 70, 'smoke_restore': 8},
+            # Moderate activity, high debt
+            {'lat_offset': -0.02, 'lng_offset': 0.01, 'vape_debt': 65, 'vape_restore': 5, 'smoke_debt': 55, 'smoke_restore': 3},
+            # Low activity, just needs restoration
+            {'lat_offset': -0.02, 'lng_offset': 0.02, 'vape_debt': 30, 'vape_restore': 2, 'smoke_debt': 25, 'smoke_restore': 1},
         ]
         
         created_zones = []

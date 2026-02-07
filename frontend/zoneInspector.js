@@ -211,15 +211,102 @@ class ZoneInspector {
       return;
     }
     
-    // Simple, clean message for bottom sheet
+    console.log('ZoneInspector.render called with:', { message, stateColor, state, zoneData });
+    
+    // Get state label for display
+    const stateLabel = this.getStateLabel(state);
+    
+    // Get map type from current zone info
+    const mapType = this.currentZone.mapType || 'vape';
+    
+    // Calculate progress information (always show, even for new zones)
+    const progressInfo = this.calculateProgressInfo(zoneData || {}, mapType, state);
+    
+    // Calculate activity frequency (always show, even for new zones)
+    const activityInfo = this.calculateActivityInfo(zoneData || {});
+    
+    console.log('Progress info HTML length:', progressInfo.length);
+    console.log('Activity info HTML length:', activityInfo.length);
+    
+    // Build HTML - no duplicate header since bottom sheet already has one
     this.container.innerHTML = `
-      <div class="zone-inspector">
-        <div class="zone-state-message">${message}</div>
-        <div class="zone-details">
-          <p>Zone: ${this.currentZone.zoneId}</p>
+      <div class="zone-inspector-content">
+        <div class="zone-state-indicator" style="background-color: ${stateColor};">
+          <span class="zone-state-label">${stateLabel}</span>
+        </div>
+        
+        <div class="zone-message">
+          ${message}
+        </div>
+        
+        ${progressInfo}
+        
+        ${activityInfo}
+      </div>
+    `;
+    
+    console.log('ZoneInspector rendered successfully');
+    console.log('Rendered HTML:', this.container.innerHTML.substring(0, 500));
+  }
+  
+  /**
+   * Calculate activity frequency information
+   * @param {Object} zoneData - Zone data from API
+   * @returns {string} HTML string with activity information
+   */
+  calculateActivityInfo(zoneData) {
+    // Get total activity (debt + restore for both types) with defaults
+    const vapeDebt = (zoneData && (zoneData.vape_debt || zoneData.vapeDebt)) || 0;
+    const vapeRestore = (zoneData && (zoneData.vape_restore || zoneData.vapeRestore)) || 0;
+    const smokeDebt = (zoneData && (zoneData.smoke_debt || zoneData.smokeDebt)) || 0;
+    const smokeRestore = (zoneData && (zoneData.smoke_restore || zoneData.smokeRestore)) || 0;
+    
+    const totalActivity = vapeDebt + vapeRestore + smokeDebt + smokeRestore;
+    
+    console.log('Activity calculation:', { vapeDebt, vapeRestore, smokeDebt, smokeRestore, totalActivity });
+    
+    // Determine activity level
+    let activityLevel = '';
+    let activityIcon = '';
+    let activityClass = '';
+    
+    if (totalActivity === 0) {
+      activityLevel = 'No Activity';
+      activityIcon = '💤';
+      activityClass = 'activity-none';
+    } else if (totalActivity < 50) {
+      activityLevel = 'Low Activity';
+      activityIcon = '📊';
+      activityClass = 'activity-low';
+    } else if (totalActivity < 150) {
+      activityLevel = 'Moderate Activity';
+      activityIcon = '📈';
+      activityClass = 'activity-moderate';
+    } else if (totalActivity < 300) {
+      activityLevel = 'High Activity';
+      activityIcon = '🔥';
+      activityClass = 'activity-high';
+    } else {
+      activityLevel = 'Very High Activity';
+      activityIcon = '⚡';
+      activityClass = 'activity-very-high';
+    }
+    
+    const html = `
+      <div class="zone-activity-info ${activityClass}">
+        <div class="activity-header">
+          <span class="activity-icon">${activityIcon}</span>
+          <span class="activity-level">${activityLevel}</span>
+        </div>
+        <div class="activity-details">
+          <small>Total activity points: ${totalActivity}</small>
         </div>
       </div>
     `;
+    
+    console.log('Activity HTML generated:', html.substring(0, 100) + '...');
+    
+    return html;
   }
   
   /**
@@ -236,28 +323,30 @@ class ZoneInspector {
     const RECOVERED_THRESHOLD = 20;
     const HEALING_THRESHOLD = -20;
     
-    // Get debt and restore scores based on map type
-    let debt, restore;
+    // Get debt and restore scores based on map type (with defaults)
+    let debt = 0, restore = 0;
     
-    if (mapType === 'vape') {
-      debt = zoneData.vape_debt || zoneData.vapeDebt || 0;
-      restore = zoneData.vape_restore || zoneData.vapeRestore || 0;
-    } else if (mapType === 'smoke') {
-      debt = zoneData.smoke_debt || zoneData.smokeDebt || 0;
-      restore = zoneData.smoke_restore || zoneData.smokeRestore || 0;
-    } else if (mapType === 'all') {
-      // Combined view
-      const vapeDebt = zoneData.vape_debt || zoneData.vapeDebt || 0;
-      const vapeRestore = zoneData.vape_restore || zoneData.vapeRestore || 0;
-      const smokeDebt = zoneData.smoke_debt || zoneData.smokeDebt || 0;
-      const smokeRestore = zoneData.smoke_restore || zoneData.smokeRestore || 0;
-      
-      debt = vapeDebt + smokeDebt;
-      restore = vapeRestore + smokeRestore;
-    } else {
-      // Default to vape
-      debt = zoneData.vape_debt || zoneData.vapeDebt || 0;
-      restore = zoneData.vape_restore || zoneData.vapeRestore || 0;
+    if (zoneData) {
+      if (mapType === 'vape') {
+        debt = zoneData.vape_debt || zoneData.vapeDebt || 0;
+        restore = zoneData.vape_restore || zoneData.vapeRestore || 0;
+      } else if (mapType === 'smoke') {
+        debt = zoneData.smoke_debt || zoneData.smokeDebt || 0;
+        restore = zoneData.smoke_restore || zoneData.smokeRestore || 0;
+      } else if (mapType === 'all') {
+        // Combined view
+        const vapeDebt = zoneData.vape_debt || zoneData.vapeDebt || 0;
+        const vapeRestore = zoneData.vape_restore || zoneData.vapeRestore || 0;
+        const smokeDebt = zoneData.smoke_debt || zoneData.smokeDebt || 0;
+        const smokeRestore = zoneData.smoke_restore || zoneData.smokeRestore || 0;
+        
+        debt = vapeDebt + smokeDebt;
+        restore = vapeRestore + smokeRestore;
+      } else {
+        // Default to vape
+        debt = zoneData.vape_debt || zoneData.vapeDebt || 0;
+        restore = zoneData.vape_restore || zoneData.vapeRestore || 0;
+      }
     }
     
     console.log('Zone scores:', { debt, restore, mapType });
@@ -318,6 +407,8 @@ class ZoneInspector {
     
     progressHTML += '</div>';
     
+    console.log('Progress HTML generated:', progressHTML.substring(0, 100) + '...');
+    
     return progressHTML;
   }
   
@@ -344,36 +435,8 @@ class ZoneInspector {
       return;
     }
     
-    // Close button
-    const closeButton = this.container.querySelector('[data-action="close"]');
-    if (closeButton) {
-      closeButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.handleClose();
-      });
-    }
-    
-    // Help zone button
-    const helpButton = this.container.querySelector('[data-action="help-zone"]');
-    if (helpButton) {
-      helpButton.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const zoneId = helpButton.getAttribute('data-zone-id');
-        const mapType = helpButton.getAttribute('data-map-type');
-        await this.handleHelpZone(zoneId, mapType);
-      });
-    }
-    
-    // Close on background click (optional - clicking outside the inspector)
-    const inspector = this.container.querySelector('.zone-inspector');
-    if (inspector) {
-      this.container.addEventListener('click', (e) => {
-        // Only close if clicking the container background, not the inspector itself
-        if (e.target === this.container) {
-          this.handleClose();
-        }
-      });
-    }
+    // Note: Close button is handled by BottomSheetManager
+    // We don't need to attach listeners for it here
     
     // Close on Escape key
     this.handleEscapeKey = (e) => {

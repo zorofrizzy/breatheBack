@@ -143,6 +143,16 @@ button:active {
   max-width: none;
   height: calc(100vh - var(--nav-height) - 56px);
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#map-toggle-container {
+  position: absolute;
+  top: var(--space-md);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
 }
 
 /* ============================================
@@ -556,7 +566,7 @@ button:active {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.4);
-  z-index: 200;
+  z-index: 1100;
   display: flex;
   align-items: flex-end;
   transition: opacity 0.3s ease;
@@ -642,6 +652,41 @@ button:active {
   width: 100%;
   height: 100%;
   background: var(--color-bg);
+}
+
+/* Map toggle controls */
+.map-toggle {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm);
+}
+
+.toggle-button {
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.toggle-button:hover {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border-color: var(--color-accent);
+}
+
+.toggle-button.active {
+  background: var(--color-accent);
+  color: white;
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent);
 }
 
 /* Quieter map zones */
@@ -891,24 +936,191 @@ button:active {
    Zone Inspector (in bottom sheet)
    ============================================ */
 
-.zone-inspector {
-  text-align: center;
-}
-
-.zone-state-message {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--color-text-primary);
+.zone-inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: var(--space-md);
 }
 
-.zone-details {
+.zone-inspector-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.close-button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  border-radius: 50%;
+  font-size: 20px;
+  color: var(--color-text-secondary);
+  transition: all 0.3s ease;
+  line-height: 1;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background: var(--color-border);
+  transform: scale(1.1);
+  color: var(--color-text-primary);
+}
+
+.zone-inspector-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.zone-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.zone-state-indicator {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.zone-state-label {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.zone-message {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  text-align: center;
   padding: var(--space-md);
   background: var(--color-bg);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
+}
+
+.zone-progress-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--color-success-bg);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.progress-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+}
+
+.progress-item.recovered {
+  background: var(--color-accent);
+  color: white;
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+}
+
+.progress-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.progress-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.progress-item.recovered .progress-text {
+  color: white;
+}
+
+.zone-score-info {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.zone-score-info small {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+/* Zone Activity Info */
+.zone-activity-info {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+}
+
+.zone-activity-info.activity-none {
+  background: rgba(148, 163, 184, 0.1);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.zone-activity-info.activity-low {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.zone-activity-info.activity-moderate {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.zone-activity-info.activity-high {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+.zone-activity-info.activity-very-high {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.activity-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.activity-level {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.activity-details {
+  text-align: left;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.zone-details {
+  margin-top: var(--space-md);
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
 }
 
 /* ============================================
