@@ -211,52 +211,12 @@ class ZoneInspector {
       return;
     }
     
-    // Get state label for display
-    const stateLabel = this.getStateLabel(state);
-    
-    // Get map type from current zone info
-    const mapType = this.currentZone.mapType || 'vape';
-    
-    // Calculate points needed for next states
-    let progressInfo = '';
-    if (zoneData) {
-      progressInfo = this.calculateProgressInfo(zoneData, mapType, state);
-    }
-    
+    // Simple, clean message for bottom sheet
     this.container.innerHTML = `
       <div class="zone-inspector">
-        <div class="zone-inspector-header">
-          <h3 class="zone-inspector-title">Zone Status</h3>
-          <button 
-            class="close-button" 
-            aria-label="Close zone inspector"
-            data-action="close"
-          >
-            ×
-          </button>
-        </div>
-        
-        <div class="zone-inspector-content">
-          <div class="zone-state-indicator" style="background-color: ${stateColor};">
-            <span class="zone-state-label">${stateLabel}</span>
-          </div>
-          
-          <div class="zone-message">
-            ${message}
-          </div>
-          
-          ${progressInfo}
-          
-          <div class="zone-actions">
-            <button 
-              class="btn-primary help-zone-btn" 
-              data-action="help-zone"
-              data-zone-id="${this.currentZone.zoneId}"
-              data-map-type="${mapType}"
-            >
-              Help This Zone
-            </button>
-          </div>
+        <div class="zone-state-message">${message}</div>
+        <div class="zone-details">
+          <p>Zone: ${this.currentZone.zoneId}</p>
         </div>
       </div>
     `;

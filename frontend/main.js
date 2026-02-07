@@ -45,9 +45,8 @@ function initializeBreatheBackApp() {
 function validateComponentsLoaded() {
   const requiredComponents = [
     'NavigationBar',
-    'ReportForm',
-    'RestorationActionCard',
-    'ActionsView',
+    'ReportFlow',
+    'BottomSheetManager',
     'HeatmapView',
     'ZoneInspector',
     'PointsSummary',
@@ -66,6 +65,7 @@ function validateComponentsLoaded() {
   
   if (missingComponents.length > 0) {
     console.error('Missing required components:', missingComponents);
+    console.log('Available components:', Object.keys(window).filter(k => k.includes('Back') || k.includes('View') || k.includes('Flow')));
     return false;
   }
   
@@ -125,12 +125,28 @@ async function onDOMReady() {
   if (!backendAvailable) {
     console.warn('Backend server not available. Some features may not work.');
     // Still initialize the app - it can work with localStorage
-    // displayBackendError();
-    // return;
   }
   
   // Initialize the application
-  initializeBreatheBackApp();
+  try {
+    initializeBreatheBackApp();
+  } catch (error) {
+    console.error('Error initializing app:', error);
+    // Show error to user
+    const app = document.getElementById('app');
+    if (app) {
+      app.innerHTML = `
+        <div style="padding: 40px; text-align: center;">
+          <h1>⚠️ Initialization Error</h1>
+          <p>Failed to initialize the application.</p>
+          <p style="color: #666; font-size: 14px;">${error.message}</p>
+          <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #0366D6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            Reload Page
+          </button>
+        </div>
+      `;
+    }
+  }
 }
 
 // ============================================================================

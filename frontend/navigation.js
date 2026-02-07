@@ -20,10 +20,8 @@ class NavigationBar {
     // Navigation items configuration
     this.navItems = [
       { id: 'report', icon: '📝', label: 'Report' },
-      { id: 'actions', icon: '✨', label: 'Actions' },
-      { id: 'heatmap', icon: '🗺️', label: 'Heatmap' },
-      { id: 'community', icon: '👥', label: 'Community' },
-      { id: 'mypoints', icon: '⭐', label: 'My Points' }
+      { id: 'map', icon: '🗺️', label: 'Map' },
+      { id: 'community', icon: '👥', label: 'Community' }
     ];
     
     this.container = null;
@@ -129,10 +127,10 @@ class NavigationBar {
   
   /**
    * Handle view change
-   * @param {string} view - View identifier ('report', 'actions', 'heatmap', 'community', 'mypoints')
+   * @param {string} view - View identifier ('report', 'map', 'community')
    */
   handleViewChange(view) {
-    const validViews = ['report', 'actions', 'heatmap', 'community', 'mypoints'];
+    const validViews = ['report', 'map', 'community'];
     
     if (!validViews.includes(view)) {
       console.error(`NavigationBar: Invalid view "${view}"`);
@@ -184,7 +182,7 @@ class NavigationBar {
    * @param {string} view - New current view
    */
   setCurrentView(view) {
-    const validViews = ['report', 'actions', 'heatmap', 'community', 'mypoints'];
+    const validViews = ['report', 'map', 'community'];
     
     if (!validViews.includes(view)) {
       console.error(`NavigationBar: Invalid view "${view}"`);
